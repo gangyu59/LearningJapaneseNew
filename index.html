@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学日语</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>日语场景对话</h1>
+		<br>
+    <!-- 角色选择 -->
+    <label for="role">选择你的角色：</label>
+    <select id="role">
+        <option value="顾客">顾客</option>
+        <option value="学生">学生</option>
+				<option value="观众">观众</option>
+				<option value="乘客">乘客</option>
+				<option value="游人">游人</option>
+				<option value="患者">患者</option>
+    </select>
+		<br><br>
+    <!-- 预设场景按钮 -->
+    <div id="presetScenes">
+        <button class="sceneBtn">点餐</button>
+        <button class="sceneBtn">打车</button>
+        <button class="sceneBtn">购物</button>
+        <button class="sceneBtn">问路</button>
+				<button class="sceneBtn">看病</button>
+        <button class="sceneBtn">听课</button>
+        <button class="sceneBtn">看戏</button>
+        <button class="sceneBtn">游玩</button>
+				<button class="sceneBtn">预订</button>
+        <button class="sceneBtn">乘机</button>
+    </div>
+		<br>
+    <!-- 用户输入框 -->
+    <textarea id="userInput" placeholder="输入场景，如‘在餐厅点餐’"></textarea>
+    
+    <!-- 生成按钮 -->
+    <button id="generateBtn">生成对话</button>
+		<button id="readText">朗读</button>
+		<button id="startDictation">跟读</button>
+		<br>
+		
+		<!-- 语速选择 -->
+		<label for="rate">语速：</label>
+		<select id="rate">
+		    <option value="0.5" selected>慢</option>
+		    <option value="1">正常</option>
+		    <option value="1.5">快</option>
+		</select>
+		
+		<!-- 音色选择 -->
+		<label for="pitch">音色：</label>
+		<select id="pitch">
+		    <option value="0">低</option>
+		    <option value="1" selected>正常</option>
+		    <option value="2">高</option>
+		</select>
+
+    <!-- 生成的对话展示区域 -->
+    <div id="output"></div>
+		
+		<!-- ⏳ Hourglass -->
+		<div id="hourglass" class="hourglass">⌛</div>
+
+    <!-- 引入 GPT API -->
+    <script src="static/js/gpt_api.js"></script>
+    
+    <!-- 引入模块化的 JS 文件 -->
+    <script src="static/js/ui.js"></script>       <!-- UI 相关模块 -->
+    <script src="static/js/speech.js"></script>   <!-- 语音相关模块 -->
+		<script src="static/js/parser.js"></script>
+			<!-- 分解句子语义模块 -->
+    <script src="static/js/main.js"></script>     <!-- 主逻辑模块 -->
+		
+</body>
+</html>
