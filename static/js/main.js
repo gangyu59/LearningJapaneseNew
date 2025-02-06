@@ -49,9 +49,10 @@ document.getElementById("readText").addEventListener("click", () => {
     readTextAloudWithOptions(text, rate, pitch, 0);
 });
 
-// 增加“开始跟读”功能
-document.getElementById("startDictation").addEventListener("click", function() {
-    startDictation();
+// 绑定“跟读”按钮，启动跟读功能
+document.getElementById("startDictation").addEventListener("click", () => {
+    console.log("🎤 启动跟读模式...");
+    startDictationPractice();  // 调用 speech.js 里的函数
 });
 
 // 语音朗读控制：设置语速和音色

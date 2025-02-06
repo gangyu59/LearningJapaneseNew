@@ -101,3 +101,116 @@ function listAvailableVoices() {
     voices = speechSynthesis.getVoices();
     voices.forEach(voice => console.log(`${voice.name} (${voice.lang})`));
 }
+
+let dialogueData = [];  // 存储当前对话数据
+let currentIndex = 0;   // 当前朗读的句子索引
+
+// ✅ 开始跟读
+function startDictationPractice() {
+    currentIndex = 0;
+    const storedData = localStorage.getItem("speechDictationTask");
+
+    if (!storedData) {
+        console.warn("❌ 没有找到对话数据！");
+        alert("请先生成对话！");
+        return;
+    }
+
+    dialogueData = JSON.parse(storedData).dialogue;
+    if (!dialogueData || dialogueData.length === 0) {
+        console.error("❌ 对话数据为空！");
+        alert("获取对话失败！");
+        return;
+    }
+
+    highlightSentence(currentIndex); // 高亮第一句
+    playDictationSentence(dialogueData[currentIndex].japanese);
+}
+
+// ✅ 高亮当前朗读的句子
+function highlightSentence(index) {
+    let dialogueElements = document.querySelectorAll(".generated-dialogue p");
+    dialogueElements.forEach((el, i) => {
+        el.style.backgroundColor = i === index ? "yellow" : "transparent";  // 仅高亮当前句子
+    });
+}
+
+// ✅ 朗读日语句子
+function playDictationSentence(sentence) {
+    if (!sentence) return;
+
+    let utterance = new SpeechSynthesisUtterance(sentence);
+    utterance.lang = "ja-JP";
+    utterance.rate = 0.9;
+
+    utterance.onend = function() {
+        console.log("✅ 朗读结束，等待用户复述...");
+        startSpeechRecognition(); // 启动语音识别
+    };
+
+    speechSynthesis.speak(utterance);
+}
+
+// ✅ 语音识别（用户复述）
+function startSpeechRecognition() {
+    let recognition = new webkitSpeechRecognition();
+    recognition.lang = "ja-JP";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let userSpeech = event.results[0][0].transcript;
+        console.log("🎙️ 用户复述:", userSpeech);
+        checkSpeechDictation(userSpeech);
+    };
+
+    recognition.onerror = function(event) {
+        console.error("❌ 语音识别错误:", event.error);
+    };
+
+    recognition.start();
+}
+
+// ✅ 评估用户的跟读
+async function checkSpeechDictation(userSpeech) {
+    let correctSentence = dialogueData[currentIndex].japanese;
+
+    const messages = [
+        { role: "system", content: "你是一个日语老师，负责检查用户的口语练习。" },
+        { role: "user", content: `请检查用户的口语复述：
+        - **原句**: ${correctSentence}
+        - **用户复述**: ${userSpeech}
+        请判断是否正确，并返回评分：
+        {
+          "correct": true/false,
+          "score": 0-10,
+          "feedback": "你的发音准确/需要改进..."
+        }`
+        }
+    ];
+
+    try {
+        const response = await fetchGPTResponse(messages);
+        let result = JSON.parse(response);
+
+        document.getElementById("speech-feedback").innerText = `🎯 评分: ${result.score}/10\n📝 反馈: ${result.feedback}`;
+
+        if (result.correct) {
+            console.log("🎉 口语复述正确！");
+        } else {
+            console.log("❌ 口语复述错误！", result.feedback);
+        }
+
+        // ✅ 继续下一句
+        currentIndex++;
+        if (currentIndex < dialogueData.length) {
+            highlightSentence(currentIndex);
+            playDictationSentence(dialogueData[currentIndex].japanese);
+        } else {
+            console.log("🎯 练习结束！");
+            alert("🎉 跟读完成！");
+        }
+    } catch (error) {
+        console.error("❌ 解析口语反馈失败", error);
+    }
+}
