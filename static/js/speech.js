@@ -57,10 +57,10 @@ function getVoiceForRole(roleIndex) {
 
     // ✅ **固定角色语音**
     if (roleIndex % 2 === 0) {
-        console.log(`🎙 角色 ${roleIndex} 选择女声: ${femaleVoice.name}`);
+//        console.log(`🎙 角色 ${roleIndex} 选择女声: ${femaleVoice.name}`);
         return femaleVoice;
     } else {
-        console.log(`🎙 角色 ${roleIndex} 选择男声: ${maleVoice.name}`);
+ //       console.log(`🎙 角色 ${roleIndex} 选择男声: ${maleVoice.name}`);
         return maleVoice;
     }
 }
@@ -75,7 +75,7 @@ function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
         .replace(/（.*?）/g, '')
         .trim();
 
-    console.log("🔊 朗读内容:", japaneseText);
+ //   console.log("🔊 朗读内容:", japaneseText);
     window.speechSynthesis.cancel();
 
     // **✅ 获取角色语音**

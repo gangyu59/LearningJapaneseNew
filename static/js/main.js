@@ -77,7 +77,7 @@ function playNextSentence(rate, pitch) {
         .replace(/【(.*?)】/g, "$1") // ✅ **移除【】符号，但保留生词**
         .trim();
 
-    console.log(`🗣 朗读角色 ${entry.roleIndex}: ${japaneseText}`);
+//    console.log(`🗣 朗读角色 ${entry.roleIndex}: ${japaneseText}`);
 
     let utterance = new SpeechSynthesisUtterance(japaneseText);
     utterance.lang = "ja-JP";
@@ -87,11 +87,11 @@ function playNextSentence(rate, pitch) {
 
     // ✅ **等待当前句朗读完毕后再继续下一句**
     utterance.onend = function() {
-        console.log("✅ 当前句朗读结束，等待 1 秒后继续...");
+//        console.log("✅ 当前句朗读结束，等待 1 秒后继续...");
         setTimeout(() => {
             currentIndex++;
             playNextSentence(rate, pitch);
-        }, 500); // **等待 1 秒后朗读下一句**
+        }, 300); // **等待 1 秒后朗读下一句**
     };
 
     speechSynthesis.speak(utterance);
