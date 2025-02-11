@@ -37,17 +37,65 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
 
 // 绑定“朗读”按钮事件
 document.getElementById("readText").addEventListener("click", () => {
-    const text = document.getElementById("output").innerText;
     const rate = parseFloat(document.getElementById("rate").value);
     const pitch = parseFloat(document.getElementById("pitch").value);
 
-    if (!text.trim()) {
-        alert("没有文本可朗读，请先生成对话！");
+    // ✅ 直接获取存储的对话数据
+    const storedData = localStorage.getItem("speechDictationTask");
+
+    if (!storedData) {
+        alert("❌ 没有找到对话，请先生成对话！");
         return;
     }
 
-    readTextAloudWithOptions(text, rate, pitch, 0);
+    dialogueData = JSON.parse(storedData).dialogue;
+
+    if (!dialogueData || dialogueData.length === 0) {
+        alert("❌ 对话数据为空，请重新生成！");
+        return;
+    }
+
+    console.log("🔊 开始朗读对话...");
+    currentIndex = 0; // 确保每次朗读都从头开始
+
+    // ✅ 启动朗读流程
+    playNextSentence(rate, pitch);
 });
+
+// ✅ **逐句朗读日语**
+function playNextSentence(rate, pitch) {
+    if (currentIndex >= dialogueData.length) {
+        console.log("🎯 对话朗读完毕！");
+        return;
+    }
+
+    let entry = dialogueData[currentIndex];
+
+    // ✅ **移除括号中的中文翻译**
+    let japaneseText = entry.japanese
+        .replace(/（[^()]*）/g, "") // 移除（中文翻译）
+        .replace(/【(.*?)】/g, "$1") // ✅ **移除【】符号，但保留生词**
+        .trim();
+
+    console.log(`🗣 朗读角色 ${entry.roleIndex}: ${japaneseText}`);
+
+    let utterance = new SpeechSynthesisUtterance(japaneseText);
+    utterance.lang = "ja-JP";
+    utterance.voice = getVoiceForRole(entry.roleIndex);
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+
+    // ✅ **等待当前句朗读完毕后再继续下一句**
+    utterance.onend = function() {
+        console.log("✅ 当前句朗读结束，等待 1 秒后继续...");
+        setTimeout(() => {
+            currentIndex++;
+            playNextSentence(rate, pitch);
+        }, 500); // **等待 1 秒后朗读下一句**
+    };
+
+    speechSynthesis.speak(utterance);
+}
 
 // 绑定“跟读”按钮，启动跟读功能
 document.getElementById("startDictation").addEventListener("click", () => {

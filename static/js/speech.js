@@ -1,3 +1,5 @@
+//speech.js
+
 let voices = []; // 存储语音列表
 
 // 🔄 **确保语音已加载**
@@ -42,11 +44,11 @@ function getVoiceForRole(roleIndex) {
         return null;
     }
 
-    console.log("✅ 可用的日语语音:", japaneseVoices.map(v => v.name));
+    //console.log("✅ 可用的日语语音:", japaneseVoices.map(v => v.name));
 
     // ✅ **强制角色 0 使用 Kyoko，角色 1 使用 Reed**
     const femaleVoice = japaneseVoices.find(v => v.name.includes("Kyoko"));
-    const maleVoice = japaneseVoices.find(v => v.name.includes("Reed"));
+    const maleVoice = japaneseVoices.find(v => v.name.includes("Eddy"));
 
     if (!femaleVoice || !maleVoice) {
         console.error("❌ Kyoko 或 Reed 语音丢失，检查 Safari 是否正确加载语音！");
@@ -76,7 +78,7 @@ function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
     console.log("🔊 朗读内容:", japaneseText);
     window.speechSynthesis.cancel();
 
-    // **获取语音**
+    // **✅ 获取角色语音**
     const voice = getVoiceForRole(roleIndex);
     if (!voice) {
         console.error("❌ 没有找到合适的语音，朗读终止！");
@@ -89,9 +91,8 @@ function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
     utterance.rate = rate;
     utterance.pitch = pitch;
 
-    console.log(`🗣 朗读角色 ${roleIndex} 语音: ${utterance.voice ? utterance.voice.name : "未设置"}`);
+    console.log(`🗣 朗读角色 ${roleIndex} 语音: ${voice.name}`);
 
-    // **防止 Safari 忽略 voice**
     setTimeout(() => {
         window.speechSynthesis.speak(utterance);
     }, 100);
