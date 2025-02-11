@@ -2,10 +2,10 @@
 
 function displayFormattedResponse(text) {
     console.log("🚀 displayFormattedResponse 被调用"); // **确认函数是否被执行**
-    console.log("📜 原始文本:", text); 
+ //   console.log("📜 原始文本:", text); 
 
     const lines = text.split("\n");
-    let formattedHtml = "<p><strong>生成的日语对话：</strong></p>";
+    let formattedHtml = "<p><strong>对话内容：</strong></p>";
     let vocabList = [];
 
     lines.forEach(line => {
@@ -26,8 +26,8 @@ function displayFormattedResponse(text) {
         }
     });
 
-    console.log("📌 生成的生词列表:", vocabList);
-    console.log(`📌 找到 ${vocabList.length} 个生词`);
+//    console.log("📌 生成的生词列表:", vocabList);
+//    console.log(`📌 找到 ${vocabList.length} 个生词`);
 
     document.getElementById("output").innerHTML = formattedHtml;
 }

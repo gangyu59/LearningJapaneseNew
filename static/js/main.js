@@ -97,11 +97,12 @@ function playNextSentence(rate, pitch) {
     speechSynthesis.speak(utterance);
 }
 
-// 绑定“跟读”按钮，启动跟读功能
+/* 绑定“跟读”按钮，启动跟读功能（暂时停用，等设计好了合适的UI后再启用）
 document.getElementById("startDictation").addEventListener("click", () => {
     console.log("🎤 启动跟读模式...");
     startDictationPractice();  // 调用 speech.js 里的函数
 });
+*/
 
 // 语音朗读控制：设置语速和音色
 document.getElementById("rate").addEventListener("change", function () {
