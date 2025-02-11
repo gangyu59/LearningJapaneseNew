@@ -1,3 +1,23 @@
+// 📌 解析 GPT 生成的日语对话
+function parseDialogue(gptResponse) {
+    if (!gptResponse) return [];
+
+    // 🔹 按换行符分割文本，并去掉空行
+    let lines = gptResponse.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+
+    // 🔹 提取每一句对话
+    let dialogueArray = lines.map(line => {
+        let parts = line.split(":");
+        if (parts.length >= 2) {
+            return { speaker: parts[0].trim(), japanese: parts[1].trim() };
+        }
+        return null;
+    }).filter(item => item !== null);
+
+    console.log("✅ 解析出的对话:", dialogueArray);
+    return dialogueArray;
+}
+
 async function fetchGPTResponse(prompt, userRole) {
     const messages = [
         { 
@@ -37,12 +57,27 @@ async function fetchGPTResponse(prompt, userRole) {
         const data = await response.json();
 
         // 🆕 处理 API 响应
-        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-            return data.choices[0].message.content;
-        } else {
-            console.error("Unexpected API response:", data);
-            return "生成失败，API 响应格式异常。";
-        }
+				// 🆕 处理 API 响应
+		if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+		    const gptResponse = data.choices[0].message.content;
+		
+		    // ✅ 解析 GPT 生成的对话
+		    const dialogueArray = parseDialogue(gptResponse);
+		
+		    // ✅ 存入 localStorage，确保跟读模式可以找到
+		    if (dialogueArray && dialogueArray.length > 0) {
+		        localStorage.setItem("speechDictationTask", JSON.stringify({ dialogue: dialogueArray }));
+		        console.log("✅ 对话已存储到 localStorage:", dialogueArray);
+		    } else {
+		        console.warn("⚠️ GPT 生成的对话为空，未存入 localStorage！");
+		    }
+		
+		    return gptResponse;
+		} else {
+		    console.error("Unexpected API response:", data);
+		    return "生成失败，API 响应格式异常。";
+		}
+
     } catch (error) {
         console.error("fetchGPTResponse error:", error);
         return "生成失败，请检查网络连接。";

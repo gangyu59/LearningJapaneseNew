@@ -28,30 +28,44 @@ function loadVoices(callback) {
     }, 2000);
 }
 
-// 🎙 **根据角色索引选择语音**
 function getVoiceForRole(roleIndex) {
     if (!voices || voices.length === 0) {
         console.error("❌ 语音列表为空，无法选择角色语音！");
         return null;
     }
 
-    const femaleVoice = voices.find(v => v.name.includes("Kyoko")) || voices[0]; 
-    const maleVoice = voices.find(v => v.name.includes("Eddy")) || voices.find(v => v.name.includes("Rocko")) || voices.find(v => v.name.includes("Reed"))  || voices.find(v => v.name.includes("Flo"))  || voices[0];
+    // ✅ **筛选所有日语语音**
+    const japaneseVoices = voices.filter(v => v.lang === "ja-JP");
 
+    if (japaneseVoices.length === 0) {
+        console.error("❌ 没有可用的日语语音！");
+        return null;
+    }
+
+    console.log("✅ 可用的日语语音:", japaneseVoices.map(v => v.name));
+
+    // ✅ **强制角色 0 使用 Kyoko，角色 1 使用 Reed**
+    const femaleVoice = japaneseVoices.find(v => v.name.includes("Kyoko"));
+    const maleVoice = japaneseVoices.find(v => v.name.includes("Reed"));
+
+    if (!femaleVoice || !maleVoice) {
+        console.error("❌ Kyoko 或 Reed 语音丢失，检查 Safari 是否正确加载语音！");
+        return null;
+    }
+
+    // ✅ **固定角色语音**
     if (roleIndex % 2 === 0) {
-        console.log(`🎙 选择女声: ${femaleVoice.name}`);
+        console.log(`🎙 角色 ${roleIndex} 选择女声: ${femaleVoice.name}`);
         return femaleVoice;
     } else {
-        console.log(`🎙 选择男声: ${maleVoice ? maleVoice.name : "未找到，使用默认女声"}`);
-        return maleVoice || femaleVoice;
+        console.log(`🎙 角色 ${roleIndex} 选择男声: ${maleVoice.name}`);
+        return maleVoice;
     }
 }
 
-// 📢 **朗读文本**
 function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
     if (!text.trim()) return;
 
-    // 清理文本（去除角色标签、生词标记、中文翻译）
     let japaneseText = text
         .replace(/生成的日语对话：/g, '')
         .replace(/(\S+):/g, '')
@@ -59,15 +73,10 @@ function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
         .replace(/（.*?）/g, '')
         .trim();
 
-    // 🆕 **截断“生词解释”**
-    const separatorIndex = japaneseText.indexOf("生词解释");
-    if (separatorIndex !== -1) {
-        japaneseText = japaneseText.substring(0, separatorIndex);
-    }
-
     console.log("🔊 朗读内容:", japaneseText);
     window.speechSynthesis.cancel();
 
+    // **获取语音**
     const voice = getVoiceForRole(roleIndex);
     if (!voice) {
         console.error("❌ 没有找到合适的语音，朗读终止！");
@@ -80,8 +89,12 @@ function readTextAloudWithOptions(text, rate, pitch, roleIndex) {
     utterance.rate = rate;
     utterance.pitch = pitch;
 
-    console.log("🔊 即将朗读:", utterance);
-    window.speechSynthesis.speak(utterance);
+    console.log(`🗣 朗读角色 ${roleIndex} 语音: ${utterance.voice ? utterance.voice.name : "未设置"}`);
+
+    // **防止 Safari 忽略 voice**
+    setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+    }, 100);
 }
 
 // 🎤 **开始语音识别（跟读功能）**
@@ -102,13 +115,31 @@ function listAvailableVoices() {
     voices.forEach(voice => console.log(`${voice.name} (${voice.lang})`));
 }
 
+let cachedDialogue = null;  // ✅ 用于存储对话
 let dialogueData = [];  // 存储当前对话数据
 let currentIndex = 0;   // 当前朗读的句子索引
+
+function saveDialogueToCache(dialogue) {
+    cachedDialogue = { dialogue };  // ✅ 以对象形式存储
+    console.log("✅ 对话已存入缓存:", cachedDialogue);
+}
+
+function getDialogueFromCache() {
+    if (!cachedDialogue) {
+        console.warn("❌ 没有找到对话数据！");
+        alert("请先生成对话！");
+        return null;
+    }
+    console.log("📖 读取缓存中的对话:", cachedDialogue);
+    return cachedDialogue;
+}
 
 // ✅ 开始跟读
 function startDictationPractice() {
     currentIndex = 0;
     const storedData = localStorage.getItem("speechDictationTask");
+		
+alert(storedData);  // 弹窗显示存储的数据
 
     if (!storedData) {
         console.warn("❌ 没有找到对话数据！");
@@ -123,9 +154,11 @@ function startDictationPractice() {
         return;
     }
 
+    console.log("🎯 练习开始，朗读第 1 句...");
     highlightSentence(currentIndex); // 高亮第一句
     playDictationSentence(dialogueData[currentIndex].japanese);
 }
+
 
 // ✅ 高亮当前朗读的句子
 function highlightSentence(index) {
@@ -135,17 +168,37 @@ function highlightSentence(index) {
     });
 }
 
-// ✅ 朗读日语句子
 function playDictationSentence(sentence) {
     if (!sentence) return;
 
-    let utterance = new SpeechSynthesisUtterance(sentence);
+    let japaneseText = sentence.replace(/（.*?）/g, "").trim();
+
+    if (speechSynthesis.speaking) {
+        console.warn("⏳ 朗读任务未完成，跳过新任务...");
+        return;
+    }
+
+    let utterance = new SpeechSynthesisUtterance(japaneseText);
     utterance.lang = "ja-JP";
     utterance.rate = 0.9;
 
+    // **✅ 强制选择日语语音**
+    let voices = speechSynthesis.getVoices();
+    let japaneseVoice = voices.find(voice => voice.name.includes("Kyoko")); // iOS Safari 默认的日语语音
+    if (japaneseVoice) {
+        utterance.voice = japaneseVoice;
+        console.log(`🎙 使用日语语音: ${japaneseVoice.name}`);
+    } else {
+        console.warn("⚠️ 未找到日语语音，使用默认语音");
+    }
+
+    console.log(`🔊 朗读: ${japaneseText}`);
+
     utterance.onend = function() {
         console.log("✅ 朗读结束，等待用户复述...");
-        startSpeechRecognition(); // 启动语音识别
+        setTimeout(() => {
+            startSpeechRecognition();
+        }, 500);  // 🔹 增加短暂延迟，确保语音识别正确启动
     };
 
     speechSynthesis.speak(utterance);
@@ -153,10 +206,26 @@ function playDictationSentence(sentence) {
 
 // ✅ 语音识别（用户复述）
 function startSpeechRecognition() {
+    if (!("webkitSpeechRecognition" in window)) {
+        console.error("❌ 你的 Safari 浏览器不支持 SpeechRecognition！");
+        alert("⚠️ 请使用 iOS Safari，并确保麦克风权限已开启！");
+        return;
+    }
+
     let recognition = new webkitSpeechRecognition();
-    recognition.lang = "ja-JP";
-    recognition.interimResults = false;
+    recognition.lang = "ja-JP"; // 识别日语
+    recognition.continuous = false; // 仅识别一次
+    recognition.interimResults = false; // 仅返回最终结果
     recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        console.log("🎤 语音识别已启动...");
+    };
+
+    recognition.onspeechend = function() {
+        console.log("✅ 语音输入结束，停止识别...");
+        recognition.stop();
+    };
 
     recognition.onresult = function(event) {
         let userSpeech = event.results[0][0].transcript;
@@ -166,6 +235,27 @@ function startSpeechRecognition() {
 
     recognition.onerror = function(event) {
         console.error("❌ 语音识别错误:", event.error);
+        
+        // 处理用户拒绝麦克风权限的问题
+        if (event.error === "not-allowed") {
+            alert("❌ 语音识别被禁用！请前往 Safari 设置中开启麦克风权限！");
+            return;
+        }
+
+        // 处理 service-not-allowed 错误，尝试重新启动识别
+        if (event.error === "service-not-allowed") {
+            console.warn("⚠️ 语音服务未授权，3 秒后重新尝试...");
+            setTimeout(() => startSpeechRecognition(), 3000);
+            return;
+        }
+
+        // 处理网络问题
+        if (event.error === "network") {
+            alert("❌ 网络错误，请检查网络连接后重试！");
+            return;
+        }
+
+        alert("⚠️ 语音识别失败，请重试！");
     };
 
     recognition.start();
@@ -191,7 +281,16 @@ async function checkSpeechDictation(userSpeech) {
 
     try {
         const response = await fetchGPTResponse(messages);
-        let result = JSON.parse(response);
+        let result;
+        
+        // 处理 JSON 解析异常
+        try {
+            result = JSON.parse(response);
+        } catch (parseError) {
+            console.error("❌ JSON 解析失败，返回原始数据", response);
+            alert("⚠️ 评分系统出错，请稍后重试！");
+            return;
+        }
 
         document.getElementById("speech-feedback").innerText = `🎯 评分: ${result.score}/10\n📝 反馈: ${result.feedback}`;
 
@@ -205,12 +304,15 @@ async function checkSpeechDictation(userSpeech) {
         currentIndex++;
         if (currentIndex < dialogueData.length) {
             highlightSentence(currentIndex);
-            playDictationSentence(dialogueData[currentIndex].japanese);
+            setTimeout(() => {
+                playDictationSentence(dialogueData[currentIndex].japanese);
+            }, 1000);  // 🔹 增加 1 秒延迟，确保评分 UI 可见
         } else {
             console.log("🎯 练习结束！");
             alert("🎉 跟读完成！");
         }
     } catch (error) {
         console.error("❌ 解析口语反馈失败", error);
+        alert("❌ 评分系统出错，请稍后再试！");
     }
 }
