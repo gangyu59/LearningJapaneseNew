@@ -36,19 +36,14 @@
 		<br>
     <!-- 用户输入框 -->
     <textarea id="userInput" placeholder="输入场景，如‘在餐厅点餐’"></textarea>
-    
-    <!-- 生成按钮 -->
-    <button id="generateBtn">生成对话</button>
-		<button id="readText">朗读</button>
-		<button id="startDictation">跟读</button>
 		<br>
 		
 		<!-- 语速选择 -->
 		<label for="rate">语速：</label>
 		<select id="rate">
-		    <option value="0.5" selected>慢</option>
+		    <option value="0.7" selected>慢</option>
 		    <option value="1">正常</option>
-		    <option value="1.5">快</option>
+		    <option value="1.3">快</option>
 		</select>
 		
 		<!-- 音色选择 -->
@@ -58,6 +53,13 @@
 		    <option value="1" selected>正常</option>
 		    <option value="2">高</option>
 		</select>
+		<br>	<br>
+		
+		    <!-- 生成按钮 -->
+    <button id="generateBtn">生成对话</button>
+		<button id="readText">朗读</button>
+		<!-- 展示屏蔽跟读 <button id="startDictation">跟读</button> -->
+		<br>
 
     <!-- 生成的对话展示区域 -->
     <div id="output"></div>
